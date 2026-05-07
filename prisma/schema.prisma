@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Cliente {
+  id  String        @id @default(cuid())
+
+  name String
+  phone String
+  cpf   String
+  address String?
+
+
+  computers  Computer[]
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+
+
+}
+
+model Computer {
+  id                    String      @id @default(cuid())
+
+  clienteId            String
+  cliente              Cliente    @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+
+  computerName          String
+  model                 String?
+
+  processor             String?
+
+  // RAM atual
+  currentRamSize        Int? // total em GB
+  currentRamSlots       Int? // quantidade de pentes
+  currentRamType        RamType?
+  currentRamFrequency   Int? // MHz
+
+  dualChannel           Boolean @default(false)
+
+  // armazenamento atual
+  currentStorageType    StorageType?
+  currentStorageSize    Int? // GB
+
+  upgrades              UpgradeBudget[]
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model UpgradeBudget {
+  id                          String      @id @default(cuid())
+
+  computerId                  String
+  computer                    Computer    @relation(fields: [computerId], references: [id], onDelete: Cascade)
+
+  // RAM recomendada
+  recommendedRamSize          Int?
+  recommendedRamSlots         Int?
+  recommendedRamType          RamType?
+  recommendedRamFrequency     Int?
+
+  // armazenamento recomendado
+  recommendedStorageType      StorageType?
+  recommendedStorageSize      Int?
+
+  estimatedPrice              Float?
+
+  notes                       String?
+
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+}
+
+enum StorageType {
+  HDD
+  SSD
+  NVME
+}
+
+enum RamType {
+  DDR2
+  DDR3
+  DDR4
+  DDR5
+}
