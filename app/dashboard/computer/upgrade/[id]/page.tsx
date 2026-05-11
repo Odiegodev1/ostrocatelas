@@ -8,7 +8,8 @@ import {
   Cpu, 
   MemoryStick, 
   HardDrive, 
-  Power
+  Power,
+  Smartphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -70,23 +71,38 @@ console.log(cliente)
       <main className="mx-auto bg-white shadow-2xl flex flex-col w-[210mm] h-[297mm] p-[15mm] print:shadow-none print:w-full print:h-full">
         
         {/* Cabeçalho da Empresa */}
-        <header className="flex justify-between items-start border-b-2 border-zinc-900 pb-6">
-          <div>
-            <h1 className="text-2xl font-black tracking-tighter text-zinc-900 uppercase">Troca Telas e Muito+</h1>
-            <p className="text-xs text-zinc-500 font-medium tracking-wide">Assistência Técnica Especializada</p>
-            <div className="mt-4 space-y-0.5 text-[10px] text-zinc-600">
-              <p className="flex items-center gap-2"><MapPin className="size-3" /> Rua 13, 1287, esquina com 91, Jaconé, Saquarema-RJ</p>
-              <p className="flex items-center gap-2"><Phone className="size-3" /> (22) 998995338</p>
-              
+        <header className="flex justify-between items-center border-b-4 border-zinc-900 pb-8 relative z-10">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+               <div className="bg-zinc-900 p-2 rounded-lg">
+                  <Smartphone className="text-white size-6" />
+               </div>
+               <div>
+                  <h1 className="text-3xl font-black tracking-tighter text-zinc-900 uppercase leading-none">
+                    Troca Telas <span className="text-blue-600">&</span> Muito+
+                  </h1>
+                  <p className="text-[10px] text-zinc-500 font-bold tracking-[0.2em] uppercase">Assistência Técnica Especializada</p>
+               </div>
+            </div>
+            
+            <div className="pt-2 space-y-1 text-[11px] text-zinc-600">
+              <p className="flex items-center gap-2">
+                <MapPin className="size-3 text-blue-600" /> Rua 13, 1287, Jaconé, Saquarema-RJ
+              </p>
+              <p className="flex items-center gap-2">
+                <Phone className="size-3 text-blue-600" /> (22) 99899-5338
+              </p>
             </div>
           </div>
-          <div className="text-right">
-         
-            <div className="bg-zinc-900 text-white px-3 py-1.5 rounded-sm">
-              <p className="text-[9px] uppercase font-bold tracking-widest">Ordem de Serviço</p>
-              <p className="text-lg font-mono">#OS-{os}</p>
+
+          <div className="flex flex-col items-end gap-2">
+            <div className="bg-zinc-900 text-white p-4 rounded-xl text-right min-w-[180px]">
+              <p className="text-[10px] uppercase font-black tracking-widest opacity-70">Ordem de Serviço</p>
+              <p className="text-2xl font-mono font-bold">#OS-{os}</p>
             </div>
-            <p className="mt-2 text-[10px] text-zinc-500 font-semibold uppercase">Emissão: {new Date().toLocaleDateString("pt-BR")}</p>
+            <p className="text-[11px] font-bold text-zinc-500 bg-zinc-100 px-3 py-1 rounded-full uppercase">
+              Emitido em: {new Date().toLocaleDateString("pt-BR")}
+            </p>
           </div>
         </header>
 

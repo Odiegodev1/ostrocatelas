@@ -1,42 +1,23 @@
 "use client";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Settings, Settings2, Shield, User } from "lucide-react";
+import { UserPlus, Phone, CreditCard, MapPin, Loader2, User } from "lucide-react";
 
 import { formschemauser, FormSchemaUser } from "../schema/formuserschema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Controller, useForm } from "react-hook-form";
 import { CreateCliente } from "./actions/CreateCliente";
 import { toast } from "sonner";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 export default function Cliente() {
+  const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
+
   const form = useForm<FormSchemaUser>({
     resolver: zodResolver(formschemauser),
     defaultValues: {
@@ -46,128 +27,152 @@ export default function Cliente() {
       address: "",
     },
   });
+
   async function onSubmit(data: FormSchemaUser) {
-   const response = await CreateCliente(data)
-   if(response.error){
-   return toast.error(response.error)
-   }
-   else{
-    
-    toast.success("Cliente criado com sucesso")
-   redirect("/dashboard")
-    
-   }
+    setIsPending(true);
+    try {
+      const response = await CreateCliente(data);
+      if (response.error) {
+        toast.error(response.error);
+      } else {
+        toast.success("Cliente cadastrado com sucesso!");
+        router.push("/dashboard"); // Substituído redirect por router.push
+      }
+    } catch (error) {
+      toast.error("Ocorreu um erro ao processar o cadastro.");
+    } finally {
+      setIsPending(false);
+    }
   }
+
   return (
-    <div className="flex min-h-screen flex-col w-full bg-zinc-200">
+    <div className="flex min-h-screen flex-col w-full bg-zinc-50/50">
       <Header />
-      <main className="flex flex-col mt-8 w-full max-w-[1600] mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Criar Cliente</h1>
-          <p className="text-sm text-zinc-800">
-            Preencha os campos abaixo para criar um novo cliente e gera um
-            orçamento
+      
+      <main className="flex flex-col mt-10 w-full max-w-4xl mx-auto px-4">
+        {/* Título da Seção */}
+        <div className="mb-8 space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-600 rounded-lg">
+              <UserPlus className="text-white size-5" />
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">
+              Novo Cliente
+            </h1>
+          </div>
+          <p className="text-zinc-500">
+            Cadastre os dados pessoais do cliente para iniciar um novo diagnóstico técnico.
           </p>
         </div>
-        <div>
-          <Card>
-            <CardContent>
-              <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
-                <FieldGroup>
-                  <div className="grid grid-cols-2 gap-10">
-                    <Controller
-                      name="name"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>Nome</FieldLabel>
-                          <Input
-                            placeholder="Ex: Pedro Santos"
-                            autoComplete="off"
-                            aria-invalid={fieldState.invalid}
-                            {...field}
-                          />
-                          {fieldState.invalid && (
-                            <FieldError errors={[fieldState.error]} />
-                          )}
-                        </Field>
-                      )}
-                    />
 
-                    <Controller
-                      name="phone"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>Telefone</FieldLabel>
-                          <Input
-                            placeholder="Ex: (00) 00000-0000"
-                            autoComplete="off"
-                            aria-invalid={fieldState.invalid}
-                            {...field}
-                          />
-                          {fieldState.invalid && (
-                            <FieldError errors={[fieldState.error]} />
-                          )}
-                        </Field>
-                      )}
-                    />
+        <Card className="border-zinc-200 shadow-sm overflow-hidden">
+          <CardContent className="p-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FieldGroup className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Nome Completo */}
+                <Controller
+                  name="name"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="space-y-2">
+                      <FieldLabel className="text-zinc-700 font-bold flex items-center gap-2">
+                        Nome Completo
+                      </FieldLabel>
+                      <div className="relative">
+                        <Input
+                          placeholder="Ex: Pedro Santos"
+                          className="pl-10 h-11 bg-zinc-50 border-zinc-200 focus:bg-white transition-all"
+                          {...field}
+                        />
+                        <User className="absolute left-3 top-3 size-5 text-zinc-400" />
+                      </div>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
 
-                    <div className="space-y-2">
-                      <Controller
-                        name="cpf"
-                        control={form.control}
-                        render={({ field, fieldState }) => (
-                          <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel>Cpf</FieldLabel>
-                            <Input
-                              placeholder="Ex: 000.000.000-00"
-                              autoComplete="off"
-                              aria-invalid={fieldState.invalid}
-                              {...field}
-                            />
-                            {fieldState.invalid && (
-                              <FieldError errors={[fieldState.error]} />
-                            )}
-                          </Field>
-                        )}
-                      />
-                    </div>
+                {/* Telefone / WhatsApp */}
+                <Controller
+                  name="phone"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="space-y-2">
+                      <FieldLabel className="text-zinc-700 font-bold">Telefone / WhatsApp</FieldLabel>
+                      <div className="relative">
+                        <Input
+                          placeholder="(22) 99999-0000"
+                          className="pl-10 h-11 bg-zinc-50 border-zinc-200"
+                          {...field}
+                        />
+                        <Phone className="absolute left-3 top-3 size-5 text-zinc-400" />
+                      </div>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
 
-                    <div className="space-y-2">
-                      <Controller
-                        name="address"
-                        control={form.control}
-                        render={({ field, fieldState }) => (
-                          <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel>Endereço</FieldLabel>
-                            <Input
-                              placeholder="Ex: Rua 1 N° 1 Bairro 1 Cidade - Rj"
-                              autoComplete="off"
-                              aria-invalid={fieldState.invalid}
-                              {...field}
-                            />
-                            {fieldState.invalid && (
-                              <FieldError errors={[fieldState.error]} />
-                            )}
-                          </Field>
-                        )}
-                      />
-                    </div>
-                  </div>
+                {/* CPF */}
+                <Controller
+                  name="cpf"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="space-y-2">
+                      <FieldLabel className="text-zinc-700 font-bold">CPF</FieldLabel>
+                      <div className="relative">
+                        <Input
+                          placeholder="000.000.000-00"
+                          className="pl-10 h-11 bg-zinc-50 border-zinc-200"
+                          {...field}
+                        />
+                        <CreditCard className="absolute left-3 top-3 size-5 text-zinc-400" />
+                      </div>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
 
-                  <Button
-                    type="submit"
-                    className="mt-8 h-12 bg-purple-500 hover:bg-purple-500/70"
-                  >
-                    {" "}
-                    <User /> Criar Cliente
-                  </Button>
-                </FieldGroup>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+                {/* Endereço */}
+                <Controller
+                  name="address"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="space-y-2">
+                      <FieldLabel className="text-zinc-700 font-bold">Endereço Residencial</FieldLabel>
+                      <div className="relative">
+                        <Input
+                          placeholder="Rua, Número, Bairro - Cidade"
+                          className="pl-10 h-11 bg-zinc-50 border-zinc-200"
+                          {...field}
+                        />
+                        <MapPin className="absolute left-3 top-3 size-5 text-zinc-400" />
+                      </div>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+              </FieldGroup>
+
+              <div className="pt-4">
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-zinc-200 flex items-center justify-center gap-2"
+                >
+                  {isPending ? (
+                    <Loader2 className="animate-spin size-5" />
+                  ) : (
+                    <UserPlus className="size-5" />
+                  )}
+                  {isPending ? "Processando..." : "Finalizar Cadastro de Cliente"}
+                </Button>
+                <p className="text-center text-xs text-zinc-400 mt-4 uppercase tracking-widest font-medium">
+                  Troca Telas & Muito+ • Gerenciamento de Ordens
+                </p>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

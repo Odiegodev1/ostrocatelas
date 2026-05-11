@@ -19,21 +19,24 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { 
-  Settings, 
-  User, 
   Monitor, 
   Cpu, 
   HardDrive, 
   Layers,
   ChevronRight,
-  Database
+  User,
+  Wrench,
+  Loader2,
+  Info
 } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { computerSchema, ComputerSchema } from "../schema/formpcschema";
 import CreatePC from "../actions/create-pc";
 import { toast } from "sonner";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface Client {
   id: string;
@@ -45,6 +48,9 @@ interface Props {
 }
 
 export function CardForm({ clients }: Props) {
+  const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
+
   const form = useForm<ComputerSchema>({
     resolver: zodResolver(computerSchema as any),
     defaultValues: {
@@ -53,61 +59,85 @@ export function CardForm({ clients }: Props) {
       processor: "",
       currentRamSize: 0,
       currentRamSlots: 0,
-      currentRamType: "DDR4", // Padrão atual mais comum
+      currentRamType: "DDR4",
       currentRamFrequency: 0,
-      dualChannel: false,
+      dualChannel: true,
       currentStorageType: "SSD",
       currentStorageSize: 0,
     },
   });
 
   async function onSubmit(data: ComputerSchema) {
-    const res = await CreatePC(data);
-    if(res.error){
+    setIsPending(true);
+    try {
+      const res = await CreatePC(data);
+      if(res.error){
         toast.error(res.error);
-    } else {
-        toast.success("PC criado com sucesso");
-        redirect("/dashboard/orcamento/"+data.clienteId);
+      } else {
+        toast.success("Diagnóstico concluído com sucesso!");
+        router.push("/dashboard/orcamento/" + data.clienteId);
+      }
+    } catch (error) {
+      toast.error("Erro ao salvar especificações.");
+    } finally {
+      setIsPending(false);
     }
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-2xl mx-auto pb-10">
-      <Card className="shadow-lg border-zinc-200">
-        <CardHeader className="space-y-1 bg-zinc-50/50 border-b">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Settings className="w-5 h-5 text-purple-600" />
+    <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-4xl mx-auto pb-12">
+      <Card className="border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white/70 backdrop-blur-md overflow-hidden">
+        {/* Banner Superior Decorativo */}
+        <div className="h-2 bg-gradient-to-r from-blue-600 via-blue-400 to-zinc-800" />
+        
+        <CardHeader className="p-8 border-b border-zinc-100">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className="flex items-center justify-center size-14 rounded-2xl bg-zinc-900 shadow-xl shadow-zinc-200 group-hover:scale-105 transition-transform">
+                <Cpu className="w-7 h-7 text-blue-500" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-zinc-900 tracking-tight">
+                  Mapeamento de Hardware
+                </CardTitle>
+                <CardDescription className="text-zinc-500 font-medium">
+                  Insira as especificações atuais para o cálculo de upgrade
+                </CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-xl">Configurador de Upgrade</CardTitle>
-              <CardDescription>Insira os dados atuais para gerar o orçamento</CardDescription>
+            <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full">
+              <span className="size-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Sistema Ativo</span>
             </div>
           </div>
         </CardHeader>
         
-        <CardContent className="p-6 space-y-8">
+        <CardContent className="p-8 space-y-12">
           
-          {/* SEÇÃO: CLIENTE */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 text-zinc-500 pb-1 border-b border-zinc-100">
-              <User className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-wider">Identificação</span>
+          {/* SEÇÃO 01: PROPRIETÁRIO */}
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-zinc-900 flex items-center gap-2">
+                <User className="size-4 text-blue-600" />
+                Proprietário
+              </h3>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Vincule este diagnóstico a um cliente existente para histórico.
+              </p>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="clienteId">Selecionar Cliente</Label>
+
+            <div className="md:col-span-2">
               <Controller
                 control={form.control}
                 name="clienteId"
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <SelectTrigger className="bg-white">
-                      <SelectValue placeholder="Selecione o cliente cadastrado" />
+                    <SelectTrigger className="h-12 bg-white border-zinc-200 shadow-sm focus:ring-2 focus:ring-blue-600/20 transition-all rounded-xl">
+                      <SelectValue placeholder="Selecione o cliente" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl">
                       {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
+                        <SelectItem key={client.id} value={client.id} className="py-3 cursor-pointer">
                           {client.name}
                         </SelectItem>
                       ))}
@@ -118,148 +148,160 @@ export function CardForm({ clients }: Props) {
             </div>
           </section>
 
-          {/* SEÇÃO: COMPUTADOR */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 text-zinc-500 pb-1 border-b border-zinc-100">
-              <Monitor className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-wider">Especificações da Máquina</span>
+          <div className="h-px bg-zinc-100 w-full" />
+
+          {/* SEÇÃO 02: EQUIPAMENTO */}
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-1">
+              <h3 className="text-sm font-bold text-zinc-900 flex items-center gap-2">
+                <Monitor className="size-4 text-blue-600" />
+                Equipamento
+              </h3>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                Informações de marca e placa para compatibilidade de peças.
+              </p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Marca / Fabricante</Label>
+                <Label className="text-xs font-bold text-zinc-600 ml-1">Marca / Fabricante</Label>
                 <Controller
                   control={form.control}
                   name="computerName"
                   render={({ field }) => (
-                    <Input placeholder="Ex: Dell, HP, Positivo" {...field} />
+                    <Input placeholder="Dell, Lenovo..." className="h-11 rounded-xl bg-zinc-50/50 border-zinc-200 focus:bg-white transition-all" {...field} />
                   )}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Modelo</Label>
+                <Label className="text-xs font-bold text-zinc-600 ml-1">Modelo / Placa-Mãe</Label>
                 <Controller
                   control={form.control}
                   name="model"
                   render={({ field }) => (
-                    <Input placeholder="Ex: Inspiron 15 / Placa Mãe B450" {...field} />
+                    <Input placeholder="B450M, Inspiron..." className="h-11 rounded-xl bg-zinc-50/50 border-zinc-200 focus:bg-white transition-all" {...field} />
                   )}
                 />
               </div>
             </div>
           </section>
 
-          {/* SEÇÃO: HARDWARE */}
-          <section className="space-y-6">
-            <div className="flex items-center gap-2 text-zinc-500 pb-1 border-b border-zinc-100">
-              <Cpu className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-wider">Hardware Atual</span>
-            </div>
+          <div className="h-px bg-zinc-100 w-full" />
 
+          {/* SEÇÃO 03: HARDWARE CORE */}
+          <section className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* Armazenamento */}
-              <div className="space-y-3 p-4 rounded-xl border bg-zinc-50/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <HardDrive className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-semibold">Armazenamento</span>
+              {/* Armazenamento Card */}
+              <div className="p-6 rounded-2xl border border-zinc-100 bg-white shadow-sm space-y-6 relative overflow-hidden group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-50 rounded-lg text-blue-600 group-hover:scale-110 transition-transform">
+                      <HardDrive className="size-5" />
+                    </div>
+                    <span className="text-sm font-bold text-zinc-800">Storage</span>
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-2">
-                        <Label className="text-xs text-zinc-500">Tipo</Label>
-                        <Controller
-                            control={form.control}
-                            name="currentStorageType"
-                            render={({ field }) => (
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="Tipo" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="HDD">HDD</SelectItem>
-                                    <SelectItem value="SSD">SSD Sata</SelectItem>
-                                    <SelectItem value="NVME">M.2 NVMe</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-black text-zinc-400 tracking-widest">Tecnologia</Label>
+                    <Controller
+                      control={form.control}
+                      name="currentStorageType"
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger className="bg-zinc-50 border-none rounded-lg h-10">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="HDD">HDD</SelectItem>
+                            <SelectItem value="SSD">SSD Sata</SelectItem>
+                            <SelectItem value="NVME">M.2 NVMe</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-black text-zinc-400 tracking-widest">Tamanho (GB)</Label>
+                    <Controller
+                      control={form.control}
+                      name="currentStorageSize"
+                      render={({ field }) => (
+                        <Input 
+                          type="number" 
+                          className="bg-zinc-50 border-none rounded-lg h-10" 
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
                         />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="text-xs text-zinc-500">Capacidade (GB)</Label>
-                        <Controller
-                            control={form.control}
-                            name="currentStorageSize"
-                            render={({ field }) => (
-                                <Input 
-                                    type="number" 
-                                    placeholder="Ex: 480" 
-                                    className="bg-white" 
-                                    {...field}
-                                    onChange={(e) => field.onChange(Number(e.target.value))}
-                                />
-                            )}
-                        />
-                    </div>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* RAM */}
-              <div className="space-y-3 p-4 rounded-xl border bg-zinc-50/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <Layers className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-semibold">Memória RAM</span>
+              {/* RAM Card */}
+              <div className="p-6 rounded-2xl border border-zinc-100 bg-white shadow-sm space-y-6 relative overflow-hidden group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-50 rounded-lg text-emerald-600 group-hover:scale-110 transition-transform">
+                      <Layers className="size-5" />
+                    </div>
+                    <span className="text-sm font-bold text-zinc-800">Memória RAM</span>
+                  </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-2">
-                        <Label className="text-xs text-zinc-500">Tecnologia</Label>
-                        <Controller
-                            control={form.control}
-                            name="currentRamType"
-                            render={({ field }) => (
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <SelectTrigger className="bg-white">
-                                <SelectValue placeholder="DDR" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="DDR2">DDR2</SelectItem>
-                                    <SelectItem value="DDR3">DDR3</SelectItem>
-                                    <SelectItem value="DDR4">DDR4</SelectItem>
-                                    <SelectItem value="DDR5">DDR5</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-black text-zinc-400 tracking-widest">Tipo</Label>
+                    <Controller
+                      control={form.control}
+                      name="currentRamType"
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger className="bg-zinc-50 border-none rounded-lg h-10">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="DDR3">DDR3</SelectItem>
+                            <SelectItem value="DDR4">DDR4</SelectItem>
+                            <SelectItem value="DDR5">DDR5</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-black text-zinc-400 tracking-widest">Capacidade</Label>
+                    <Controller
+                      control={form.control}
+                      name="currentRamSize"
+                      render={({ field }) => (
+                        <Input 
+                          type="number" 
+                          className="bg-zinc-50 border-none rounded-lg h-10" 
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
                         />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="text-xs text-zinc-500">Total (GB)</Label>
-                        <Controller
-                            control={form.control}
-                            name="currentRamSize"
-                            render={({ field }) => (
-                            <Input
-                                type="number"
-                                placeholder="Ex: 16"
-                                className="bg-white"
-                                {...field}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
-                            />
-                            )}
-                        />
-                    </div>
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* DUAL CHANNEL TOGGLE */}
-            <div className="flex items-center justify-between bg-purple-50/50 border border-purple-100 p-4 rounded-xl transition-all hover:bg-purple-50">
-              <div className="space-y-0.5">
-                <h4 className="text-sm font-semibold text-purple-900">Configuração de Canais</h4>
-                <p className="text-xs text-purple-700/70">
-                  O sistema já opera em Dual Channel? (2 ou 4 pentes)
-                </p>
+            <div className="flex items-center justify-between p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-lg group transition-all hover:bg-black">
+              <div className="flex items-center gap-4">
+                <div className="size-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 text-blue-400 group-hover:text-blue-300">
+                  <Info className="size-6" />
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-sm font-bold text-white tracking-tight">Arquitetura de Canal</h4>
+                  <p className="text-[11px] text-zinc-500 font-medium">O hardware já utiliza Dual Channel para performance?</p>
+                </div>
               </div>
 
               <Controller
@@ -269,23 +311,47 @@ export function CardForm({ clients }: Props) {
                   <Switch
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    className="data-[state=checked]:bg-purple-500"
+                    className="data-[state=checked]:bg-blue-500"
                   />
                 )}
               />
             </div>
           </section>
 
-          <Button
-            type="submit"
-            className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-bold transition-all shadow-md hover:shadow-purple-200 active:scale-[0.98]"
-          >
-            <Settings className="mr-2 w-5 h-5" />
-            Gerar Orçamento Técnico
-            <ChevronRight className="ml-2 w-4 h-4 opacity-50" />
-          </Button>
+          {/* BOTÃO DE AÇÃO */}
+          <div className="pt-4">
+            <Button
+              type="submit"
+              disabled={isPending}
+              className={cn(
+                "w-full h-16 rounded-2xl text-lg font-bold transition-all duration-300",
+                "bg-blue-600 hover:bg-blue-700 text-white shadow-[0_10px_20px_rgba(37,99,235,0.2)]",
+                "flex items-center justify-center gap-3 active:scale-[0.98]",
+                isPending && "opacity-80"
+              )}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="animate-spin size-6" />
+                  <span>Processando Análise...</span>
+                </>
+              ) : (
+                <>
+                  <Wrench className="size-5" />
+                  <span>Gerar Diagnóstico Profissional</span>
+                  <ChevronRight className="size-5 opacity-40 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
+      
+      <div className="mt-8 flex flex-col items-center gap-2">
+        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.3em]">
+          Troca telas e muito+
+        </p>
+      </div>
     </form>
   );
 }
