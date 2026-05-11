@@ -12,9 +12,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { PrintActions } from "./print-actions";
+
 import prisma from "@/lib/prisma";
 import { notFound, redirect } from "next/navigation";
+import { PrintActions } from "@/app/dashboard/orcamento/[id]/print-actions";
 
 export default async function OSPage({
   params,
@@ -23,23 +24,28 @@ export default async function OSPage({
 ) {
   
   const {id} = await params
-  const clienteos = await prisma.cliente.findUnique({
+  const computer = await prisma.computer.findUnique({
     where: {
-      id: id
+      id: id,
     }
   })
-  if (!clienteos){
+  if (!computer){
     return redirect("/dashboard")
   }
- const ultimoComputer = await prisma.computer.findFirst({
+
+ const ultimoComputer = await prisma.computer.findUnique({
   where: {
-    clienteId: id,
+    id: id
   },
-  orderBy: {
-    createdAt: "desc",
-  },
+  
 });
 
+const cliente = await prisma.cliente.findUnique({
+  where: {
+    id: ultimoComputer?.clienteId
+  }
+})
+console.log(cliente)
 
 
   const orcamentos = await prisma.upgradeBudget.findFirst({
@@ -88,9 +94,9 @@ export default async function OSPage({
         <section className="mt-8 grid grid-cols-2 gap-8">
           <div>
             <h3 className="text-[9px] font-bold text-zinc-400 uppercase mb-1">Dados do Cliente</h3>
-            <p className="text-base font-bold text-zinc-900 uppercase">{clienteos?.name}</p>
-            <p className="text-[11px] text-zinc-600">End: {clienteos?.address}</p>
-            <p className="text-[11px] text-zinc-600">Tel: {clienteos?.phone}</p>
+            <p className="text-base font-bold text-zinc-900 uppercase">{cliente?.name}</p>
+            <p className="text-[11px] text-zinc-600">End: {cliente?.address}</p>
+            <p className="text-[11px] text-zinc-600">Tel:{cliente?.phone} </p>
           </div>
           <div className="text-right">
             <h3 className="text-[9px] font-bold text-zinc-400 uppercase mb-1">Equipamento</h3>
@@ -158,7 +164,7 @@ export default async function OSPage({
           </div>
           <div className="border-t border-zinc-400 text-center pt-2">
             <p className="text-[9px] uppercase font-bold text-zinc-400">Assinatura do Cliente</p>
-            <p className="text-[11px] font-medium text-zinc-800">{clienteos?.name}</p>
+            <p className="text-[11px] font-medium text-zinc-800">{cliente?.name}</p>
           </div>
         </section>
 

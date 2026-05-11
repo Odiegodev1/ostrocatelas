@@ -1,7 +1,15 @@
+"use client"
 import { Smartphone } from "lucide-react";
 import { Button } from "./ui/button";
+import { redirect } from "next/navigation";
 
 export function Header(){
+function handleorcamento(){
+    redirect("/dashboard/orcamento")
+}
+function handlecliente(){
+    redirect("/dashboard/cliente")
+}
     return(
         <div className="h-17 border-b flex items-center justify-between border-zinc-800/50 w-full  py-1.5">
             <div className="flex items-center w-full mx-auto max-w-[1600] justify-between">
@@ -14,8 +22,8 @@ export function Header(){
             </div>
 
             <div className="flex gap-2 items-center">
-                <Button variant="outline">Novo Orçamento</Button>
-                <Button variant="outline">Historico</Button>
+                <Button variant="outline" onClick={handleorcamento}>Novo Orçamento</Button>
+                <Button variant="outline" onClick={handlecliente}>Criar Cliente</Button>
             </div>
 
             </div>

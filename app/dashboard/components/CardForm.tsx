@@ -25,7 +25,8 @@ import {
   Cpu, 
   HardDrive, 
   Layers,
-  ChevronRight
+  ChevronRight,
+  Database
 } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,27 +53,26 @@ export function CardForm({ clients }: Props) {
       processor: "",
       currentRamSize: 0,
       currentRamSlots: 0,
-      currentRamType: "DDR3",
+      currentRamType: "DDR4", // Padrão atual mais comum
       currentRamFrequency: 0,
       dualChannel: false,
-      currentStorageType: "HDD",
+      currentStorageType: "SSD",
       currentStorageSize: 0,
     },
   });
 
-async function onSubmit(data: ComputerSchema) {
-    const res = await CreatePC(data)
+  async function onSubmit(data: ComputerSchema) {
+    const res = await CreatePC(data);
     if(res.error){
-        toast.error(res.error)
+        toast.error(res.error);
+    } else {
+        toast.success("PC criado com sucesso");
+        redirect("/dashboard/orcamento/"+data.clienteId);
     }
-    else{
-        toast.success("PC criado com sucesso")
-        
-    }
-    
-}
+  }
+
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-2xl mx-auto">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-2xl mx-auto pb-10">
       <Card className="shadow-lg border-zinc-200">
         <CardHeader className="space-y-1 bg-zinc-50/50 border-b">
           <div className="flex items-center gap-2">
@@ -132,7 +132,7 @@ async function onSubmit(data: ComputerSchema) {
                   control={form.control}
                   name="computerName"
                   render={({ field }) => (
-                    <Input placeholder="Ex: Dell, HP, Lenovo" {...field} />
+                    <Input placeholder="Ex: Dell, HP, Positivo" {...field} />
                   )}
                 />
               </div>
@@ -143,7 +143,7 @@ async function onSubmit(data: ComputerSchema) {
                   control={form.control}
                   name="model"
                   render={({ field }) => (
-                    <Input placeholder="Ex: Inspiron 15 5000" {...field} />
+                    <Input placeholder="Ex: Inspiron 15 / Placa Mãe B450" {...field} />
                   )}
                 />
               </div>
@@ -151,63 +151,104 @@ async function onSubmit(data: ComputerSchema) {
           </section>
 
           {/* SEÇÃO: HARDWARE */}
-          <section className="space-y-4">
+          <section className="space-y-6">
             <div className="flex items-center gap-2 text-zinc-500 pb-1 border-b border-zinc-100">
               <Cpu className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-wider">Hardware Atual</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
               {/* Armazenamento */}
               <div className="space-y-3 p-4 rounded-xl border bg-zinc-50/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <HardDrive className="w-4 h-4 text-zinc-400" />
-                  <span className="text-sm font-medium">Armazenamento</span>
+                  <HardDrive className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-semibold">Armazenamento</span>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label className="text-xs">Tipo</Label>
-                  <Controller
-                    control={form.control}
-                    name="currentStorageType"
-                    render={({ field }) => (
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="HDD">HDD Sata</SelectItem>
-                          <SelectItem value="SSD">SSD Sata</SelectItem>
-                          <SelectItem value="NVME">SSD M.2 NVMe</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
+                        <Label className="text-xs text-zinc-500">Tipo</Label>
+                        <Controller
+                            control={form.control}
+                            name="currentStorageType"
+                            render={({ field }) => (
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <SelectTrigger className="bg-white">
+                                <SelectValue placeholder="Tipo" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="HDD">HDD</SelectItem>
+                                    <SelectItem value="SSD">SSD Sata</SelectItem>
+                                    <SelectItem value="NVME">M.2 NVMe</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            )}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="text-xs text-zinc-500">Capacidade (GB)</Label>
+                        <Controller
+                            control={form.control}
+                            name="currentStorageSize"
+                            render={({ field }) => (
+                                <Input 
+                                    type="number" 
+                                    placeholder="Ex: 480" 
+                                    className="bg-white" 
+                                    {...field}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                />
+                            )}
+                        />
+                    </div>
                 </div>
               </div>
 
               {/* RAM */}
               <div className="space-y-3 p-4 rounded-xl border bg-zinc-50/30">
                 <div className="flex items-center gap-2 mb-2">
-                  <Layers className="w-4 h-4 text-zinc-400" />
-                  <span className="text-sm font-medium">Memória RAM</span>
+                  <Layers className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-semibold">Memória RAM</span>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label className="text-xs">Capacidade Total (GB)</Label>
-                  <Controller
-                    control={form.control}
-                    name="currentRamSize"
-                    render={({ field }) => (
-                      <Input
-                        type="number"
-                        placeholder="Ex: 8"
-                        className="bg-white"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    )}
-                  />
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-2">
+                        <Label className="text-xs text-zinc-500">Tecnologia</Label>
+                        <Controller
+                            control={form.control}
+                            name="currentRamType"
+                            render={({ field }) => (
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <SelectTrigger className="bg-white">
+                                <SelectValue placeholder="DDR" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="DDR2">DDR2</SelectItem>
+                                    <SelectItem value="DDR3">DDR3</SelectItem>
+                                    <SelectItem value="DDR4">DDR4</SelectItem>
+                                    <SelectItem value="DDR5">DDR5</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            )}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label className="text-xs text-zinc-500">Total (GB)</Label>
+                        <Controller
+                            control={form.control}
+                            name="currentRamSize"
+                            render={({ field }) => (
+                            <Input
+                                type="number"
+                                placeholder="Ex: 16"
+                                className="bg-white"
+                                {...field}
+                                onChange={(e) => field.onChange(Number(e.target.value))}
+                            />
+                            )}
+                        />
+                    </div>
                 </div>
               </div>
             </div>
@@ -215,9 +256,9 @@ async function onSubmit(data: ComputerSchema) {
             {/* DUAL CHANNEL TOGGLE */}
             <div className="flex items-center justify-between bg-purple-50/50 border border-purple-100 p-4 rounded-xl transition-all hover:bg-purple-50">
               <div className="space-y-0.5">
-                <h4 className="text-sm font-semibold text-purple-900">Configuração de Slots</h4>
+                <h4 className="text-sm font-semibold text-purple-900">Configuração de Canais</h4>
                 <p className="text-xs text-purple-700/70">
-                  O sistema possui dois pentes trabalhando em Dual Channel?
+                  O sistema já opera em Dual Channel? (2 ou 4 pentes)
                 </p>
               </div>
 

@@ -12,15 +12,14 @@ export async function CreateCliente(data: FormSchemaUser) {
             error: "Não e possivel criar um cliente sem dados"
         }
     }
-    const cpfcrypt = hashSync(data.cpf, 10)
-    console.log(cpfcrypt)
+  
     try{
 
         const cliente = await prisma.cliente.create({
             data: {
                 name:data.name,
                 phone: data.phone,
-                cpf: cpfcrypt,
+                cpf: data.cpf,
                 address: data.address
             }
         })
