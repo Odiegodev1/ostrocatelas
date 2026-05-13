@@ -1,13 +1,10 @@
 import prisma from "@/lib/prisma"
 import { columns, Payment } from "./columns"
 import { DataTable } from "./data-table"
+import { GetClientes } from "../dashboard/actions/get-cliente"
 
 async function getData(): Promise<Payment[]> {
-const clientes = await prisma.cliente.findMany({
-    orderBy: {
-        createdAt: "desc",
-    },
-})
+const clientes = await GetClientes()
   return [
     ...clientes
     

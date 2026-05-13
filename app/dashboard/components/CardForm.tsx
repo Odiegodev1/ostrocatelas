@@ -52,7 +52,7 @@ export function CardForm({ clients }: Props) {
   const [isPending, setIsPending] = useState(false);
 
   const form = useForm<ComputerSchema>({
-    resolver: zodResolver(computerSchema as any),
+    resolver: zodResolver(computerSchema ),
     defaultValues: {
       computerName: "",
       model: "",

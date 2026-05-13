@@ -12,6 +12,7 @@ datasource db {
   provider = "postgresql"
 }
 
+
 model Cliente {
   id  String        @id @default(cuid())
 
