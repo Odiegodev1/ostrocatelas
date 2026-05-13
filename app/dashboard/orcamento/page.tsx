@@ -6,12 +6,7 @@ import { CardForm } from "../components/CardForm";
 import prisma from "@/lib/prisma";
 
 export default async function Dashboard() {
-  const clientes = await prisma.cliente.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-  console.log('sassd',clientes);
+  const clientes = await GetClientes();
   return (
     <div className="flex min-h-screen flex-col w-full bg-zinc-50/50">
       <Header />

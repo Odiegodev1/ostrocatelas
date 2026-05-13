@@ -64,6 +64,7 @@ export function CardForm({ clients }: Props) {
       dualChannel: true,
       currentStorageType: "SSD",
       currentStorageSize: 0,
+      clienteId: "",
     },
   });
 
