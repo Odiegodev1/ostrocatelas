@@ -3,10 +3,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Shield, Rocket, Clock, CheckCircle2, HelpCircle } from "lucide-react";
 import { GetClientes } from "../actions/get-cliente";
 import { CardForm } from "../components/CardForm";
+import prisma from "@/lib/prisma";
 
 export default async function Dashboard() {
-  const clientes = await GetClientes();
-
+  const clientes = await prisma.cliente.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+  console.log('sassd',clientes);
   return (
     <div className="flex min-h-screen flex-col w-full bg-zinc-50/50">
       <Header />
@@ -24,7 +29,7 @@ export default async function Dashboard() {
           
           {/* Coluna do Formulário (Esquerda) */}
           <div className="lg:col-span-7 xl:col-span-8">
-            <CardForm clients={clientes as any} />
+            <CardForm clients={clientes } />
           </div>
 
           {/* Coluna Informativa (Direita) */}
@@ -64,7 +69,7 @@ export default async function Dashboard() {
 
               <CardFooter className="relative z-10 border-t border-white/5 pt-8 mt-4 bg-white/[0.02]">
                 <CardDescription className="text-zinc-400 text-sm leading-relaxed italic">
-                  "Recomendações baseadas em arquitetura técnica garantem que o cliente invista no componente correto, evitando gastos desnecessários."
+                  Recomendações baseadas em arquitetura técnica garantem que o cliente invista no componente correto, evitando gastos desnecessários.
                 </CardDescription>
               </CardFooter>
             </Card>
